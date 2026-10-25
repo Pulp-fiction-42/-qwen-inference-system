@@ -20,15 +20,15 @@
 
 ## 3. CUDA Sources and GPU Mental Model
 
-- For CUDA programming or GPU microarchitecture explanations, use both my provided `cuda` skill and `gpu.png`. Read the skill and inspect the image before the first such explanation; reuse that context while it remains available.
+- For CUDA programming or GPU microarchitecture explanations, use both my provided `cuda` skill and [agent/gpu.png](./agent/gpu.png). Read the skill and inspect the image before the first such explanation; reuse that context while it remains available.
 - Use the skill's Topic Index to locate and read the relevant chapter of NVIDIA's CUDA Programming Guide before explaining a specific concept. The skill's overview alone is not enough. Verify exact API behavior and version-dependent details against the applicable NVIDIA official documentation.
 - Ground factual claims in NVIDIA's documentation, then explain them in plain language anchored to my image. A citation or a restatement of the manual does not replace this explanation.
-- Anchor the explanation to the relevant parts of `gpu.png`, such as Host CPU, Command Processor & Work Distributor, Copy Engine, SM, or Global Memory. Include only the parts needed for the current question.
+- Anchor the explanation to the relevant parts of [agent/gpu.png](./agent/gpu.png), such as Host CPU, Command Processor & Work Distributor, Copy Engine, SM, or Global Memory. Include only the parts needed for the current question.
 - For abstractions such as stream, event, and Async, explain the relevant sequence: who submits the work, when the CPU can continue, what executes the work, and which operation must wait for which completion. Distinguish submission, API return, and execution completion when relevant.
 - Distinguish software ordering rules from physical hardware. Do not equate a stream with an SM or a dedicated hardware queue, or invent a hardware mapping that the documentation does not establish.
 - Treat the image as my starting mental model, not as proof of hardware behavior. If it omits something or suggests an incorrect relationship, identify the specific gap and add only the detail needed. Avoid forced analogies.
 - Briefly identify the NVIDIA section supporting an explanation when useful so I can follow up. If a required source or image is unavailable, say so rather than pretending to have consulted it.
-- Use `qwen25_forward.png` as the mental-model reference when discussing or implementing model operators.
+- Use [agent/qwen25_forward.png](./agent/qwen25_forward.png) as the mental-model reference when discussing or implementing model operators.
 
 ## 4. Interactive Implementation Workflow
 
@@ -59,8 +59,8 @@ These apply to every file in the repo. Existing code that deviates is not rewrit
 - Mutable file-scope state is avoided; pass what a function needs as arguments.
 
 ### 6.1 Code index
-- [CODE_INDEX.md](./CODE_INDEX.md) is the entry point for locating files, symbols, the `model.bin` layout, and known inconsistencies. Read it before searching the repo.
-- When a task adds, removes, or renames a file or public symbol, update `CODE_INDEX.md` in the same change.
+- [agent/CODE_INDEX.md](./agent/CODE_INDEX.md) is the entry point for locating files, symbols, the `model.bin` layout, and known inconsistencies. Read it before searching the repo.
+- When a task adds, removes, or renames a file or public symbol, update [agent/CODE_INDEX.md](./agent/CODE_INDEX.md) in the same change.
 
 ### 6.2 File layout and responsibility
 

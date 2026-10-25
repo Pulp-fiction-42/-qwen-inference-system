@@ -1,4 +1,6 @@
 #pragma once
+#include "model.h"
+
 // GQA config 
 // for `attn_score_softmax` and `weighted_sum` kernels casue they need these config to do GQA 
 struct GQAConfig {

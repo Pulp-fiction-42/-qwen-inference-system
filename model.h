@@ -38,7 +38,7 @@ struct Model {
     const float* lm_head;// [dim, vocab_size]，LM head 权重矩阵
 
     void* device_data;
-    std::size_t mapped_size;
+    size_t mapped_size;
 };
 
 struct RunState {

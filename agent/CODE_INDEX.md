@@ -1,6 +1,6 @@
 # Code Index
 
-Qwen2.5-1.5B-Instruct 本地推理 REPL。Python 负责 tokenizer 与终端交互，常驻的 C/CUDA 进程（`engine`）负责推理。协议与请求流程详见 [readme.md](./readme.md)；协作与编码规范见 [AGENTS.md](./AGENTS.md)。
+Qwen2.5-1.5B-Instruct 本地推理 REPL。Python 负责 tokenizer 与终端交互，常驻的 C/CUDA 进程（`engine`）负责推理。协议与请求流程详见 [readme.md](../readme.md)；协作与编码规范见 [AGENTS.md](../AGENTS.md)。
 
 > 维护规则：新增/删除/重命名文件或公开符号时，同步更新本文件。本文件只记录"是什么、在哪、依赖谁"，不记录行号。
 
@@ -21,25 +21,26 @@ repl.py ──stdin: "N id1 … idN\n"──▶ engine (run.cu)
 
 | 文件 | 职责 | 状态 |
 |---|---|---|
-| [repl.py](./repl.py) | 启动 `engine` 子进程；chat template → token ID；流式解码输出 | 完成 |
-| [run.cu](./run.cu) | `main`：读请求 → PREFILL → GENERATION（argmax）→ 打印 token / `DONE` | 完成（依赖未实现的 `forward`、`sample_argmax`） |
-| [model.h](./model.h) | `Config` / `blocks` / `Model` / `RunState` 定义，加载与释放函数声明 | 完成 |
-| [model.cu](./model.cu) | `load_model_weights` / `free_model_weights` / `load_runstate` / `free_runstate` | 完成 |
-| [forward.h](./forward.h) | `forward` 声明 | 进行中 |
-| [forward.cu](./forward.cu) | 单 token 前向流程，调用层函数与 kernel | 进行中（TODO 较多） |
-| [layer.h](./layer.h) | 模型层 kernel 声明及 `attention` / `mlp` host 编排函数声明 | 进行中 |
-| [layer.cu](./layer.cu) | 模型层 kernel 与 `attention` / `mlp` 编排；残差、MLP、LM head 已实现 | 进行中（仍有 TODO） |
-| [test/test_model.cu](./test/test_model.cu) | 校验 `Config` 与 embedding 前 8 个 float 是否与 `model.bin` 一致 | 完成 |
+| [repl.py](../repl.py) | 启动 `engine` 子进程；chat template → token ID；流式解码输出 | 完成 |
+| [run.cu](../run.cu) | `main`：读请求 → PREFILL → GENERATION（argmax）→ 打印 token / `DONE` | 完成（依赖未实现的 `forward`、`sample_argmax`） |
+| [model.h](../model.h) | `Config` / `blocks` / `Model` / `RunState` 定义，加载与释放函数声明 | 完成 |
+| [model.cu](../model.cu) | `load_model_weights` / `free_model_weights` / `load_runstate` / `free_runstate` | 完成 |
+| [forward.h](../forward.h) | `forward` 声明 | 进行中 |
+| [forward.cu](../forward.cu) | 单 token 前向流程，调用层函数与 kernel | 进行中（TODO 较多） |
+| [layer.h](../layer.h) | 模型层 kernel 声明及 `attention` / `mlp` host 编排函数声明 | 进行中 |
+| [layer.cu](../layer.cu) | 模型层 kernel 与 `attention` / `mlp` 编排；残差、MLP、LM head 已实现 | 进行中（仍有 TODO） |
+| [test/test_model.cu](../test/test_model.cu) | 校验 `Config` 与 embedding 前 8 个 float 是否与 `model.bin` 一致 | 完成 |
+| [test/test_print.cu](../test/test_print.cu) | 打印 `RunState` 各成员的字节数、GPU 地址、偏移与到下一成员的间距；并简要打印 `Model` 权重地址 | 完成 |
 | `test/test_model` | 已构建的二进制（未被 git 跟踪，不要手改） | 产物 |
-| [Makefile](./Makefile) | 构建 `engine`、`test/test_model` | **空** |
-| [readme.md](./readme.md) | 版本备注及前向编排 / 层计算的文件分工 | 备注 |
-| [AGENTS.md](./AGENTS.md) | 协作方式、编码规范（C++ 当 C 用）、文件分层规则 | 规范 |
+| [Makefile](../Makefile) | 构建 `engine`（`-arch=sm_120`） | 完成 |
+| [readme.md](../readme.md) | 版本备注及前向编排 / 层计算的文件分工 | 备注 |
+| [AGENTS.md](../AGENTS.md) | 协作方式、编码规范（C++ 当 C 用）、文件分层规则 | 规范 |
 | [gpu.png](./gpu.png) | GPU 微架构心智模型 | 参考图 |
 | [qwen25_forward.png](./qwen25_forward.png) | Qwen2.5 前向结构图 | 参考图 |
 | `.learn/` | 个人学习草稿（`pointer.cu`、`model.cu`、`hf_to_bin_minimal.ipynb` 及编译产物） | 非项目代码 |
 | `.clangd` / `.vscode/` | 编辑器配置（clangd CUDA 模式，`sm_80`） | 配置 |
 
-## 3. 数据结构（[model.h](./model.h)）
+## 3. 数据结构（[model.h](../model.h)）
 
 | 符号 | 含义 |
 |---|---|
@@ -103,12 +104,12 @@ final_norm → lm_head(=embedding) → logits
 
 ## 7. 当前已知不一致（仅记录，未修改）
 
-1. `forward` 签名：[forward.h](./forward.h) 为 4 参数，[forward.cu](./forward.cu) 定义为 5 参数（多 `Config*`）；[run.cu](./run.cu) 按 4 参数调用。
+1. `forward` 签名：[forward.h](../forward.h) 为 4 参数，[forward.cu](../forward.cu) 定义为 5 参数（多 `Config*`）；[run.cu](../run.cu) 按 4 参数调用。
 2. `MAX_SEQ_LEN` 在 model.h、model.cu、run.cu、repl.py 各定义一次；model.cu、run.cu 都 include model.h，C++ 中会重定义。`model.h` 中 `lm_head` 注释写 `[dim, vocab_size]`，实际与 embedding 同为 `[vocab_size, dim]`。
 3. `RunState::attn_score` 未在 `load_runstate` 中计入 `total_size`，也未赋指针。
 4. `sample_argmax` 在 run.cu 使用但无声明/实现；`model.h`、`forward.h`、`layer.h` 均无 include guard，重复包含可能导致重定义。
-5. [forward.cu](./forward.cu) 的 LM head 已改为传 NULL（无 bias），不再分配零 bias；`forward` 仍每 token 分配 rms，[layer.cu](./layer.cu) 的 `attention` 每次调用创建两个 stream 而未销毁。违反 AGENTS.md 6.5（per-token 不得分配或创建 stream）。
+5. [forward.cu](../forward.cu) 的 LM head 已改为传 NULL（无 bias），不再分配零 bias；`forward` 仍每 token 分配 rms，[layer.cu](../layer.cu) 的 `attention` 每次调用创建两个 stream 而未销毁。违反 AGENTS.md 6.5（per-token 不得分配或创建 stream）。
 6. repl.py 将权重路径作为 `argv[1]` 传给 `engine`，但 `model.cu` 忽略参数并硬编码路径；`engine` 由 Makefile 生成，Makefile 目前为空。
 7. 层 kernel 大多未实现，forward.cu 中部分 grid/block 仍为未定义的占位变量；`attention` 调用的 `q_proj / k_proj / v_proj` 与 layer.h / layer.cu 中的 `proj` 不一致。Makefile 为空。
-8. [model.cu](./model.cu) 中有不符合 AGENTS.md 6.0（C++ 当 C 用）的写法：lambda `take`、`auto*`、`static_cast`/`reinterpret_cast`、`new[]`/`delete[]`、`nullptr`；[run.cu](./run.cu) 也用了 `constexpr`、`nullptr`。
-9. [layer.cu](./layer.cu) 的 `compute_attn_score_softmax` 硬编码 `h / 6`（应为 `n_heads / n_kv_heads`）。
+8. [model.cu](../model.cu) 中有不符合 AGENTS.md 6.0（C++ 当 C 用）的写法：lambda `take`、`auto*`、`static_cast`/`reinterpret_cast`、`new[]`/`delete[]`、`nullptr`；[run.cu](../run.cu) 也用了 `constexpr`、`nullptr`。
+9. [layer.cu](../layer.cu) 的 `compute_attn_score_softmax` 硬编码 `h / 6`（应为 `n_heads / n_kv_heads`）。

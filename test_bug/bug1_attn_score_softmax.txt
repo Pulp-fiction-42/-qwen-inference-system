@@ -1,0 +1,196 @@
+You: hello 
+Assistant: ========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (0,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f74 is out of bounds
+=========     and is 3,543,470,985,458,167,645 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (1,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f78 is out of bounds
+=========     and is 3,543,470,985,458,167,649 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (2,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f7c is out of bounds
+=========     and is 3,543,470,985,458,167,653 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (3,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f80 is out of bounds
+=========     and is 3,543,470,985,458,167,657 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (4,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f84 is out of bounds
+=========     and is 3,543,470,985,458,167,661 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (5,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f88 is out of bounds
+=========     and is 3,543,470,985,458,167,665 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (6,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f8c is out of bounds
+=========     and is 3,543,470,985,458,167,669 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (7,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f90 is out of bounds
+=========     and is 3,543,470,985,458,167,673 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (8,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f94 is out of bounds
+=========     and is 3,543,470,985,458,167,677 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (9,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f98 is out of bounds
+=========     and is 3,543,470,985,458,167,681 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (10,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632f9c is out of bounds
+=========     and is 3,543,470,985,458,167,685 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Invalid __global__ write of size 4 bytes
+=========     at attn_score_softmax(const float *, const float *, float *, GQAConfig)+0x4b0 in layer.cu:98
+=========     by thread (11,0,0) in block (0,0,0)
+=========     Access to 0x312d616475632fa0 is out of bounds
+=========     and is 3,543,470,985,458,167,689 bytes after the nearest allocation at 0x714e25400000 of size 24 bytes
+=========     Saved host backtrace up to driver entry point at kernel launch time
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xacd4] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaLaunchKernel.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: weighted_sum(float*, float const*, float*, GQAConfig) [0xc1a5] in engine
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xadd3] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= CUDA API Error: Sticky error detected
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: proj(float const*, float const*, float*, int) [0xc3f7] in engine
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xae6b] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaLaunchKernel.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: proj(float const*, float const*, float*, int) [0xc3f7] in engine
+=========         Host Frame: attention(blocks*, RunState*, int, Config*, int) [0xae6b] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9e48] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= CUDA API Error: Sticky error detected
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: attn_residual(float const*, float const*, float*, int) [0xc649] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9ecc] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaLaunchKernel.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: attn_residual(float const*, float const*, float*, int) [0xc649] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9ecc] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= CUDA API Error: Sticky error detected
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: rms_norm(float const*, float*, float*, int, float*, float) [0xb819] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9f65] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaLaunchKernel.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: rms_norm(float const*, float*, float*, int, float*, float) [0xb819] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9f65] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= CUDA API Error: Sticky error detected
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: mlp_proj(float const*, float const*, float*, int, int) [0xc8c1] in engine
+=========         Host Frame: mlp(blocks const*, RunState*, float const*, float*, int, int) [0xaf66] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9f9f] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaLaunchKernel.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: mlp_proj(float const*, float const*, float*, int, int) [0xc8c1] in engine
+=========         Host Frame: mlp(blocks const*, RunState*, float const*, float*, int, int) [0xaf66] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9f9f] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+========= Program hit cudaErrorIllegalAddress (error 700) due to "an illegal memory access was encountered" on CUDA API call to cudaGetLastError.
+=========     Saved host backtrace up to driver entry point at error
+=========         Host Frame: mlp(blocks const*, RunState*, float const*, float*, int, int) [0xaf6b] in engine
+=========         Host Frame: forward(Model*, RunState*, Config*, int, int) [0x9f9f] in engine
+=========         Host Frame: main [0xecee] in engine
+========= 
+gate projection launch failed: an illegal memory access was encountered
+Traceback (most recent call last):
+  File "/home/bgi-chao/repl/repl.py", line 95, in <module>
+    main()
+    ~~~~^^
+  File "/home/bgi-chao/repl/repl.py", line 63, in main
+    raise RuntimeError("Inference process exited unexpectedly.")
+RuntimeError: Inference process exited unexpectedly.
+========= Target application returned an error
+========= ERROR SUMMARY: 22 errors

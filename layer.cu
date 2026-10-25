@@ -83,21 +83,22 @@ const float* q_rot,
 const float* k_cache,
 float* attn_score,
 GQAConfig gqa_config
-){
-// the must local variable for each thread
-int token_pos = threadIdx.x; 
-int current_h = blockIdx.x;
-int group_for_each_h = current_h / 6;
-float product_sum = 0.0f;
+)
+    {
+    // the must local variable for each thread
+    int token_pos = threadIdx.x; 
+    int current_h = blockIdx.x;
+    int group_for_each_h = current_h / 6;
+    float product_sum = 0.0f;
 
 
-// (1, 128) * (128, 1)
-for (int i = 0; i < 128; ++i){
-    product_sum += q_rot[(current_h * gqa_config.stride_q_head) + i] * k_cache[(token_pos * gqa_config.stride_kv_token) + (group_for_each_h * gqa_config.stride_kv_group) + i];
-}
-attn_score[(current_h * gqa_config.stride_score_head) + token_pos] = product_sum;
+    // (1, 128) * (128, 1)
+    for (int i = 0; i < 128; ++i){
+        product_sum += q_rot[(current_h * gqa_config.stride_q_head) + i] * k_cache[(token_pos * gqa_config.stride_kv_token) + (group_for_each_h * gqa_config.stride_kv_group) + i];
+    }
+    attn_score[(current_h * gqa_config.stride_score_head) + token_pos] = product_sum;
 
-}
+    }
 
 
 // weighted sum 
@@ -173,6 +174,8 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
     cudaDeviceSynchronize();
 
 
+
+
     // reshape for `q`, `k`, `v`
     // but, it's just logical shape...hhh, the reshape is in my mental 
 
@@ -220,7 +223,7 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
 
 
     // compute attn_score 
-    attn_score_softmax<<<dim3(position + 1), dim3(config->n_heads)>>>(
+    attn_score_softmax<<<dim3(config->n_heads), dim3(position + 1)>>>(
         state->q_rot,
         state->key_cache + layer_offset,
         state->attn_score,
@@ -445,11 +448,15 @@ __global__ void kernel_1(float* logits, float* kernel_1_output_logits, int* kern
     // 共8轮规约
     // 每轮规约: 每个线程与相邻线程比较取最大值，并将最大值放在比较组的前面位置
     // 每轮实例：turn1: (0, 1); turn2: (0, 2); turn3: (0, 4); ...
+    // 每轮的t_stride(表示当前轮次：2个做比较线程相邻的跨度): 1, 2, 4, 8, 16, 32, 64, 128
+    int tid = threadIdx.x;
     for (int t_stride = 1; t_stride < blockDim.x; t_stride *= 2){
-        int idx = threadIdx.x * (2 * t_stride);
-        if (s_logits[idx] < s_logits[idx + t_stride]){
-            s_logits[idx] = s_logits[idx + t_stride];
-            s_idx[idx] = s_idx[idx + t_stride];
+        if (tid % (2 * t_stride) == 0){ // only selected threads 
+        
+            if (s_logits[tid] < s_logits[tid + t_stride]){
+                s_logits[tid] = s_logits[tid + t_stride];
+                s_idx[tid] = s_idx[tid + t_stride];
+            }
         }
         __syncthreads(); // synchronize after each reduction step
     }
@@ -467,11 +474,12 @@ config: <<<1, 640>>>, 640 threads in each block to cover the number of blocks of
 */
 
 __global__ void kernel_2(float* kernel_1_output_logits, int* kernel_1_output_idx, int* d_max_value_index){
-    int tid = threadIdx.x;
+
     __shared__ float s_max[640];
     __shared__ int s_idx[640];
 
     // move data form glolbal memory to shared memory
+    int tid = threadIdx.x;
     if (tid < 640){
         s_max[tid] = kernel_1_output_logits[tid];
         s_idx[tid] = kernel_1_output_idx[tid];
@@ -482,14 +490,19 @@ __global__ void kernel_2(float* kernel_1_output_logits, int* kernel_1_output_idx
     __syncthreads(); 
 
     // 每个block内规约找最大值
-    for (int t_stride = 1; t_stride < blockDim.x; t_stride *= 2){
-        int idx = tid * (2 * t_stride);
-        if (s_max[idx] < s_max[idx + t_stride]){
-            s_max[idx] = s_max[idx + t_stride];
-            s_idx[idx] = s_idx[idx + t_stride];
+    for (int t_stride = 1; t_stride < 640; t_stride *= 2) {
+            // 只有当前跨度内的起始线程执行，且必须严格限制目标地址小于 640
+            if (tid % (2 * t_stride) == 0) {
+                int target_idx = tid + t_stride;
+                if (target_idx < 640) { // 严格防止尾部越界
+                    if (s_max[tid] < s_max[target_idx]) {
+                        s_max[tid] = s_max[target_idx];
+                        s_idx[tid] = s_idx[target_idx];
+                    }
+                }
+            }
+            __syncthreads();
         }
-        __syncthreads();
-    }
     
     if (tid == 0){
         *d_max_value_index = s_idx[0];

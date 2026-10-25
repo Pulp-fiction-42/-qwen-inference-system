@@ -184,6 +184,7 @@ void load_runstate(RunState* state, Config* config) {
     state->k_rot = cursor ; cursor += config->dim / config->n_heads * config->n_kv_heads;
     state->key_cache = cursor ; cursor += config->n_layers * state->max_seq_len * (config->dim / config->n_heads * config->n_kv_heads);
     state->value_cache = cursor ; cursor += config->n_layers * state->max_seq_len * (config->dim / config->n_heads * config->n_kv_heads);
+    state->attn_score = cursor ; cursor += config->n_heads * state->max_seq_len;
     state->softmax_attn_score = cursor ; cursor += config->n_heads * state->max_seq_len;
     state->weighted_value = cursor ; cursor += config->n_heads * (config->dim / config->n_heads);
     state->attn_o = cursor ; cursor += config->dim;
