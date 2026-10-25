@@ -1,3 +1,29 @@
-1. 未完成版本
-2. pure operator 和“具体某一层的计算”没有分开（下一版需要实现）。
-3. 下一版需要明确抽象层级和分工职责：明确 pure operator 由 `__device__` 在 kernel 函数中发起，`forward.cu` 中存放执行某一具体层算子的函数，由 `__global__` 发起（并在其中通过 `__device__` 调用 operator）。
+# Qwen Inference System
+
+## 当前状态
+
+1. 已成功完成编译和链接；可执行产物位于 `make/` 目录。
+2. 运行 `python repl.py` 时，CUDA kernel 会触发非法内存访问：
+
+```shell
+PyTorch was not found. Models won't be available and only tokenizers, configuration and file/data utilities can be used.
+
+You: fuck you
+Assistant: copy v to v-cache failed: an illegal memory access was encountered
+copy k to K-cache failed: an illegal memory access was encountered
+gate projection launch failed: an illegal memory access was encountered
+Traceback (most recent call last):
+  File "/home/bgi-chao/repl/repl.py", line 95, in <module>
+    main()
+    ~~~~^^
+  File "/home/bgi-chao/repl/repl.py", line 63, in main
+    raise RuntimeError("Inference process exited unexpectedly.")
+RuntimeError: Inference process exited unexpectedly
+```
+
+这表明 CUDA kernel 中存在非法访问问题。下一版本将重点定位并修复该问题。
+
+## 文件职责
+
+- `forward.h` / `forward.cu`：负责单 token 前向流程。
+- `layer.h` / `layer.cu`：负责各层计算与 attention / MLP 编排，计算直接写在各层 kernel 中。

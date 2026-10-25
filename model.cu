@@ -8,7 +8,7 @@
 #include "model.h"
 #include <cstdio>
 #include <cstdlib>
-constexpr int MAX_SEQ_LEN = 2048;
+
 
 
 
@@ -149,6 +149,7 @@ void load_runstate(RunState* state, Config* config) {
     // 2. 将各缓冲区大小相加，得到总字节数。
     size_t total_size = size_x + size_before_attn_norm_x + size_q + size_k + size_v +
                         size_q_rot + size_k_rot + size_key_cache + size_value_cache +
+                        size_attn_score + 
                         size_softmax_attn_score + size_weighted_value + size_attn_o +
                         size_residual_after_attn + size_after_attn_norm_x +
                         size_g + size_b + size_s + size_f + size_m +

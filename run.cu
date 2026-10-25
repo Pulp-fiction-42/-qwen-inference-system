@@ -1,16 +1,20 @@
 #include <cstdio>
 #include "model.h"    // ModelWeights, RunState, load/free 函数
 #include "forward.h"  // forward()
-constexpr int MAX_SEQ_LEN = 2048;
 
 int main() {
 
     Model model;
     RunState state;
+    Config config;
+    
     load_model_weights(&model);
     load_runstate(&state, &model.config);
+    config = model.config;
+    
     int prompt[MAX_SEQ_LEN];
     int prompt_length;
+    
 
     // Wait for requests until Python closes the pipe.
     while (scanf("%d", &prompt_length) == 1) {
@@ -27,7 +31,7 @@ int main() {
         `float* logits` always keep the previous token's address  
         */
         int position = 0;
-        const float *logits = nullptr;
+        float *d_logits = nullptr;
         
         // PREFILL
         /*
@@ -35,7 +39,7 @@ int main() {
         the `float* logits` point to the last token's logits 
         */
         while (position < prompt_length) {
-            logits = forward(&model, &state, prompt[position], position);
+            d_logits = forward(&model, &state, &config, prompt[position], position);
             ++position;
         }
 
@@ -45,7 +49,7 @@ int main() {
         break when `position >= MAX_SEQ_LEN` and hit the `151645 or 151643`
         */
         while (position < MAX_SEQ_LEN) {
-            int next_token = sample_argmax(logits, model.config.vocab_size);
+            int next_token = sample_argmax(d_logits, model.config.vocab_size);
             
             // if the token id signal means END
             if (next_token == 151645 || next_token == 151643)
@@ -58,7 +62,7 @@ int main() {
             if (position == MAX_SEQ_LEN - 1)
                 break;
 
-            logits = forward(&model, &state, next_token, position);
+            d_logits = forward(&model, &state, &config, next_token, position);
             ++position;
         }
         

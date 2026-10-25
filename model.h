@@ -1,3 +1,4 @@
+#pragma once
 #include <cstdint>
 constexpr int MAX_SEQ_LEN = 2048;
 struct Config {
