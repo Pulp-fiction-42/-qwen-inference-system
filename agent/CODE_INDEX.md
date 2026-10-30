@@ -21,18 +21,22 @@ repl.py ──stdin: "N id1 … idN\n"──▶ engine (run.cu)
 
 | 文件 | 职责 | 状态 |
 |---|---|---|
+| [test_kernel/readme.md](../test_kernel/readme.md) | 各测试目录的目的、方法和使用命令；单轮 token 对照及多轮终端问答说明 | 完成 |
+| [test_kernel/test_multi_turn/test_multi_turn.py](../test_kernel/test_multi_turn/test_multi_turn.py) | `main()` 预设三轮中文提示词，维护实际问答历史，向同一个 engine 发送每轮完整输入，在终端打印解码后的回复 | 完成 |
+| [test_kernel/test_single_forward/inspect_forward.py](../test_kernel/test_single_forward/inspect_forward.py) | `read_states()` 读取 C 的 `name[index]: value`；`compare_states()` 要求全部有效元素齐全后比较 Mean AE（<1e-5），缺失则失败；`main()` 提供 FP32 layers[0]/position0 参考值（含 attention 分数、cache 及 block0 后 norm/head），保留模型权重摘要 | 完成 |
+| [test_kernel/test_single_forward/test_single_forward.cu](../test_kernel/test_single_forward/test_single_forward.cu) | 导出单 token、第 0 个 Transformer block 及 final norm / LM head 的中间状态 | 完成 |
+| [test_kernel/test_single_forward/test_sampler.cu](../test_kernel/test_single_forward/test_sampler.cu) | 构造已知最大值的 logits，检查 `sample_argmax` 输出 | 完成 |
+| [test_kernel/test_single_forward/test_rms_norm.cu](../test_kernel/test_single_forward/test_rms_norm.cu) | 单独运行 embedding 与首层 RMSNorm | 辅助检查 |
+| [test_kernel/test_generation/test_generation.py](../test_kernel/test_generation/test_generation.py) | `main()` 从本地 Hugging Face 目录加载 Qwen 模型，套用与 repl.py 一致的对话模板，以 FP32 逐 token PREFILL，再用 KV Cache + Argmax GENERATION；`MAX_SEQ_LEN=2048`，EOS 与 engine 一致；`-prompt` / `--prompt` 指定文本，stdout 输出 `N id1 … idN` 请求，`-out` / `--out` 保存逐行生成 ID 和 `DONE`，进度写 stderr | 完成 |
 | [repl.py](../repl.py) | 启动 `engine` 子进程；chat template → token ID；流式解码输出 | 完成 |
-| [run.cu](../run.cu) | `main`：读请求 → PREFILL → GENERATION（argmax）→ 打印 token / `DONE` | 完成（依赖未实现的 `forward`、`sample_argmax`） |
+| [run.cu](../run.cu) | `main`：读请求 → PREFILL → GENERATION（argmax）→ 打印 token / `DONE` | 完成 |
 | [model.h](../model.h) | `Config` / `blocks` / `Model` / `RunState` 定义，加载与释放函数声明 | 完成 |
 | [model.cu](../model.cu) | `load_model_weights` / `free_model_weights` / `load_runstate` / `free_runstate` | 完成 |
-| [forward.h](../forward.h) | `forward` 声明 | 进行中 |
-| [forward.cu](../forward.cu) | 单 token 前向流程，调用层函数与 kernel | 进行中（TODO 较多） |
-| [layer.h](../layer.h) | 模型层 kernel 声明及 `attention` / `mlp` host 编排函数声明 | 进行中 |
-| [layer.cu](../layer.cu) | 模型层 kernel 与 `attention` / `mlp` 编排；残差、MLP、LM head 已实现 | 进行中（仍有 TODO） |
-| [test/test_model.cu](../test/test_model.cu) | 校验 `Config` 与 embedding 前 8 个 float 是否与 `model.bin` 一致 | 完成 |
-| [test/test_print.cu](../test/test_print.cu) | 打印 `RunState` 各成员的字节数、GPU 地址、偏移与到下一成员的间距；并简要打印 `Model` 权重地址 | 完成 |
-| `test/test_model` | 已构建的二进制（未被 git 跟踪，不要手改） | 产物 |
-| [Makefile](../Makefile) | 构建 `engine`（`-arch=sm_120`） | 完成 |
+| [forward.h](../forward.h) | `forward` / `sample_argmax` 声明 | 基本完成 |
+| [forward.cu](../forward.cu) | 单 token 前向流程与 argmax 采样，调用层函数与 kernel | 基本完成 |
+| [layer.h](../layer.h) | 模型层 kernel 声明及 `attention` / `mlp` host 编排函数声明 | 基本完成 |
+| [layer.cu](../layer.cu) | 模型层 kernel、`attention` / `mlp` 编排与 argmax 两阶段归约 | 基本完成 |
+| [Makefile](../Makefile) | 增量构建 `engine` 及指定路径的 `test_kernel/` CUDA 测试（`-arch=sm_120`） | 完成 |
 | [readme.md](../readme.md) | 版本备注及前向编排 / 层计算的文件分工 | 备注 |
 | [AGENTS.md](../AGENTS.md) | 协作方式、编码规范（C++ 当 C 用）、文件分层规则 | 规范 |
 | [gpu.png](./gpu.png) | GPU 微架构心智模型 | 参考图 |

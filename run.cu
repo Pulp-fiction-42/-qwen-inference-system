@@ -45,7 +45,7 @@ int main() {
 
         // GENERATION
         /*
-        select next token use `sample_argmax` with last token's logits and print it out(`print + fflush`) to pipe to Python process
+        select next token use `sample_argmax` with last token's testlogits and print it out(`print + fflush`) to pipe to Python process
         break when `position >= MAX_SEQ_LEN` and hit the `151645 or 151643`
         */
         while (position < MAX_SEQ_LEN) {
@@ -54,7 +54,6 @@ int main() {
             // if the token id signal means END
             if (next_token == 151645 || next_token == 151643)
                 break;
-
             printf("%d\n", next_token);
             fflush(stdout);
             
@@ -65,7 +64,6 @@ int main() {
             d_logits = forward(&model, &state, &config, next_token, position);
             ++position;
         }
-        
 
         printf("DONE\n");
         fflush(stdout);

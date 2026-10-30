@@ -1,6 +1,6 @@
 NVCC := nvcc
 ARCH := -arch=sm_120
-NVCCFLAGS := -lineinfo
+NVCCFLAGS := -g -G
 
 OBJDIR := make
 TARGET := engine
@@ -28,8 +28,8 @@ $(OBJDIR)/run.o: run.cu forward.h model.h | $(OBJDIR)
 	$(NVCC) $(ARCH) $(NVCCFLAGS) -c $< -o $@
 
 # 针对 test_kernel 目录下测试可执行文件的编译规则
-test_kernel/%: test_kernel/%.cu layer.h model.h $(OBJDIR)/layer.o $(OBJDIR)/model.o
-	$(NVCC) $(ARCH) $(NVCCFLAGS) -I. $< $(OBJDIR)/layer.o $(OBJDIR)/model.o -o $@
+test_kernel/%: test_kernel/%.cu forward.h layer.h model.h $(OBJDIR)/forward.o $(OBJDIR)/layer.o $(OBJDIR)/model.o
+	$(NVCC) $(ARCH) $(NVCCFLAGS) -I. $< $(OBJDIR)/forward.o $(OBJDIR)/layer.o $(OBJDIR)/model.o -o $@
 
 test_kernel: $(TEST_KERNEL_BINS)
 

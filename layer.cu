@@ -22,16 +22,55 @@ __global__ void embedding_lookup(
 
 }
 
-
-__global__ void rms_norm(const float* rmn_norm_weight, float* input, float* output, int dim, float* rms, float eps){
+// 1 block, 256 threads, each threads handle 6 elements
+// step1: reduce to get `r`
+// step2; element wise: yi = xi * r * Wi
+__global__ void rms_norm(const float* rmn_norm_weight, float* input, float* output, int dim, float* r, float eps){
     
-    int tid = blockIdx.x * blockDim.x + threadIdx.x;
-    // normalization
-    // x' = x / RMS
-    // out = x' * weight
-    output[tid] = input[tid] / *(rms) * rmn_norm_weight[tid];
+    // reduce 1536 dim inputs -> rms, r = 1 / (sqrt(rms + eps))
+    __shared__ float s_data[256];
+    int tid = threadIdx.x;
+    float six_number_sum = 0.0f;
+    
 
+    for(int i = tid; i < dim; i += blockDim.x){
+        six_number_sum += input[i] * input[i];
+        // printf("thread: %d six_number_sum: %f\n", tid, six_number_sum);
+    }
+    s_data[tid] = six_number_sum;
+    __syncthreads();
+
+
+    // reduce, totally 8 times
+    for(int stride = 1; stride < (blockDim.x); stride *= 2){
+        if (tid % (2 * stride) == 0){
+            s_data[tid] += s_data[tid + stride];
+            // printf("s_data[%d] after stride %d: %f\n", tid, stride, s_data[tid]);
+        }
+        __syncthreads();
+    }
+    // compute the `r` based on `eps` and `rms` and write to *rms by thread0
+    if (tid == 0){
+        // printf("rms is %f\n", s_data[0]);
+        *r = 1.0f / sqrtf(s_data[0] / dim + eps);
+        // printf("r is %f\n", *r);
+    }
+    __syncthreads();
+
+    // element wise 
+    for (int i = tid; i < dim; i += blockDim.x){
+        output[i] = input[i] * (*r) * rmn_norm_weight[i];
+        /*
+        if (tid == 0){
+            printf("the first input is this turn is: %f\n", input[i]);
+        }        
+        */
+    }
 }
+
+
+
+
 
 
 // for QKV projection
@@ -50,75 +89,235 @@ __global__ void proj_bias(const float* weights, const float* bias, const float* 
 }   
 
 
-// <<< 12, 64 >>>, each block handle one head, for each head, there are 64 groups, so use 64 threads in each block
+// rope: <<<haed-num, head-elements / 2>>> <=> q: <<<12, 64>>>, k: <<<2, 64>>>
 /*
-each thread:
-1. local variable: i(group), freq, angle, position
-2. rotate for this group, eg: group 0: (q[0], q[64])
-    2.1. compute: qi' = qi * cos(angle) - q(i+ 64) * sin(angle)
-    2.2. compute: q(i+64)' = qi * sin(angle) + q(i+64) * cos(angle)
-    "for 2.1 and 2.2, each warp just do one 内存事务 (memory transaction), cause the cache line is 128 bytes,
-    and after warp0 execute the `qi' = qi * cos(angle) - q(i+ 64) * sin(angle)`, the total 128 bytes of q-head
-    will store in cache" 
+each block represents one head 
+each thread handles one group(eg: (0, 64), (1, 65), (2, 66), ...(63, 127))
 */
-__global__ void rope(float* input, float* rot_input, int position, float theta){
-    // assign local variable to each thread
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
-    float freq = powf(theta, -2.0f * i / 128.0f);
-    float angle = position * freq;
+__global__ void rope(
+    float*  q_or_k,
+    float*  rot_q_or_k,
+    int position,
+    float theta
+    )
 
-    // rotate and write to rot_input
-    rot_input[i] = input[i] * cosf(angle) - input[i + 64] * sinf(angle);
-    rot_input[i + 64] = input[i] * sinf(angle) + input[i + 64] * cosf(angle);
+{
+    // group variable for each thread 
+    int group_stride = blockDim.x; // 64
+    int group_id = threadIdx.x % group_stride;
+    
+    // head variable for each thread
+    int head_stride = blockDim.x * 2; // 128
+    int global_idx = blockIdx.x * head_stride + threadIdx.x;
+
+    // each thread handles one group's rotation
+    float frequency = 1.0f / powf(theta, 2.0f * group_id / 128.0f);
+    float angle = position * frequency;
+
+    rot_q_or_k[global_idx] =
+        q_or_k[global_idx] * cosf(angle)
+        - q_or_k[global_idx + group_stride] * sinf(angle);
+
+    rot_q_or_k[global_idx + group_stride] =
+        q_or_k[global_idx] * sinf(angle)
+        + q_or_k[global_idx + group_stride] * cosf(angle);
+}
+
+
+
+//  strategy: <<<heads number, 256>>>
+//  attn_score:
+//      each warp handles one token. so for each head(block), needs '(p + 1) / warp-number(8)' turn to handles all tokens in sequence
+//  softmax: each block handle 1 head, for each head(p + 1): max-reduce -> element-wise(`score - max`) -> sum-reduce -> element-wise normalization
+//      inside the block, each warp handle `tokens_per_warp` scores (= max_seq_len / warp_number, e.g. 2048 / 8 = 256)
+//          inside the warp, each thread handle `tokens_per_warp / 32` elements (e.g. 256 / 32 = 8)
+//  requirement: blockDim.x is a multiple of 32, blockDim.x / 32 is a power of 2 and <= MAX_WARPS_PER_BLOCK
+const int WARP_SIZE = 32;
+const int MAX_WARPS_PER_BLOCK = 32; // 1024 threads / 32
+__global__ void attn_score_softmax(
+    const float* q_rot,
+    const float* k_cache,
+    float* attn_score,         // [n_heads, max_seq_len] raw scaled Q*K^T
+    float* softmax_attn_score, // [n_heads, max_seq_len] softmax result
+    GQAConfig gqa_config
+){
+
+    // threads local variable
+    int warp_id = threadIdx.x / WARP_SIZE;
+    int lane_id = threadIdx.x % WARP_SIZE;
+    int warp_number = blockDim.x / WARP_SIZE;
+    int n_kv_heads = gqa_config.kv_head_dim / gqa_config.head_dim;
+    int group_id = blockIdx.x / (gqa_config.heads_num / n_kv_heads); // which kv head this q head uses
+    int tokens_per_warp = (gqa_config.max_seq_len + warp_number - 1) / warp_number; // scores one warp covers in softmax
+    int score_offset = blockIdx.x * gqa_config.max_seq_len; // this head's row in attn_score / softmax_attn_score
+
+    // 12 heads parrallel
+    //      each head:
+                // handle warp_number tokens (one per warp) parallely
+    for (int token = warp_id; token < gqa_config.seq_len; token += warp_number){
+        float accum_sum = 0.0f; 
+
+        // inside the warp: head_dim / 32 turns of accumulation
+        for(int d = lane_id; d < gqa_config.head_dim; d += WARP_SIZE){
+            accum_sum += q_rot[blockIdx.x * gqa_config.head_dim + d] * k_cache[token * gqa_config.kv_head_dim + group_id * gqa_config.head_dim + d];   
+
+        }
+        
+
+        // Warp 内规约：32 → 16 → 8 → 4 → 2 → 1
+        for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
+            accum_sum += __shfl_down_sync(0xffffffff, accum_sum, offset);
+        }
+
+        // 每个 Warp 只有 Lane 0 写入最终结果
+        if (lane_id == 0) {
+            attn_score[score_offset + token] = accum_sum * (1 / sqrt((float)gqa_config.head_dim));
+        }
+
+
+    }
+
+    // all warps must finish writing attn_score before softmax reads other warps' scores
+    __syncthreads();
+
+    // softmax
+    // shared memory for softmax intermediate results
+    __shared__ float s_max[MAX_WARPS_PER_BLOCK]; // one per warp
+    __shared__ float s_sum[MAX_WARPS_PER_BLOCK]; // one per warp
+    int activae_warp_num = (gqa_config.seq_len + tokens_per_warp - 1) / tokens_per_warp; // number of warps actively handling tokens in this head
+
+    // step1 : max-reduce 
+    // launch the acivated warp
+    if (warp_id < activae_warp_num) {
+        // each thread handles tokens_per_warp / 32 elements (stride = 32); elements beyond seq_len are padded with -inf
+        float thread_max = -INFINITY;
+        for (int d = lane_id; d < tokens_per_warp; d += WARP_SIZE){
+            int token_idx = warp_id * tokens_per_warp + d;
+            float score = -INFINITY;
+            if (token_idx < gqa_config.seq_len) {
+                score = attn_score[score_offset + token_idx];
+            }
+            thread_max = fmaxf(thread_max, score);
+        }
+
+        // warp shuffle reduce: 32 -> 16 -> 8 -> 4 -> 2 -> 1, lane 0 gets the warp max
+        for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
+            float other_max = __shfl_down_sync(0xffffffff, thread_max, offset);
+            thread_max = fmaxf(thread_max, other_max);
+        }
+
+        // lane 0 writes this warp's max to shared memory
+        if (lane_id == 0) {
+            s_max[warp_id] = thread_max;
+        }
+    } else {
+        // idle warp: write -inf so it never wins the final reduction
+        if (lane_id == 0) {
+            s_max[warp_id] = -INFINITY;
+        }
+    }
+
+    // s_max[0..warp_number-1] must be fully written before warp 0 reads it
+    __syncthreads();
+
+    // warp 0, first warp_number / 2 threads: tree reduction over s_max[warp_number] -> s_max[0]
+    if (warp_id == 0) {
+        for (int stride = warp_number / 2; stride > 0; stride /= 2) {
+            if (lane_id < stride) {
+                s_max[lane_id] = fmaxf(s_max[lane_id], s_max[lane_id + stride]);
+            }
+            // only warp 0 is involved, so a warp-level barrier between levels is enough
+            __syncwarp();
+        }
+    }
+    __syncthreads(); // ensure s_max[0] is fully reduced before using it
+
+
+    // step2: exp(score - max_score), read raw attn_score and write softmax_attn_score
+    float max_score = s_max[0]; // the final max value for this head
+    for (int i = threadIdx.x; i < gqa_config.seq_len; i += blockDim.x){
+        softmax_attn_score[score_offset + i] = expf(attn_score[score_offset + i] - max_score);
+    }
+    __syncthreads(); // ensure all threads have written softmax_attn_score before any further use
+
+
+    // step3: sum-reduce
+    if (warp_id < activae_warp_num) {
+        // each thread handles tokens_per_warp / 32 elements (stride = 32); elements beyond seq_len are padded with 0
+        float accum_sum = 0.0f;
+        for (int d = lane_id; d < tokens_per_warp; d += WARP_SIZE){
+            int token_idx = warp_id * tokens_per_warp + d;
+            float score = 0.0f;
+            if (token_idx < gqa_config.seq_len) {
+                score = softmax_attn_score[score_offset + token_idx];
+            }
+            accum_sum += score;
+        }
+
+        // warp shuffle reduce: 32 -> 16 -> 8 -> 4 -> 2 -> 1, lane 0 gets the warp sum
+        for (int offset = WARP_SIZE / 2; offset > 0; offset /= 2) {
+            float other_sum = __shfl_down_sync(0xffffffff, accum_sum, offset);
+            accum_sum += other_sum;
+        }
+
+        // lane 0 writes this warp's sum to shared memory
+        if (lane_id == 0) {
+            s_sum[warp_id] = accum_sum;
+        }
+    } else {
+        // idle warp: write 0 so it does not change the final sum
+        if (lane_id == 0) {
+            s_sum[warp_id] = 0.0f;
+        }
+    }
+
+    // s_sum[0..warp_number-1] must be fully written before warp 0 reads it
+    __syncthreads();
+
+    // warp 0, first warp_number / 2 threads: tree reduction over s_sum[warp_number] -> s_sum[0]
+    if (warp_id == 0) {
+        for (int stride = warp_number / 2; stride > 0; stride /= 2) {
+            if (lane_id < stride) {
+                s_sum[lane_id] = s_sum[lane_id] + s_sum[lane_id + stride];
+            }
+            __syncwarp();
+        }
+    }
+    __syncthreads(); // ensure s_sum[0] is fully reduced before using it
+
+
+    // step4: normalize softmax_attn_score by the sum
+    float sum = s_sum[0]; // the final sum for this head
+    for (int i = threadIdx.x; i < gqa_config.seq_len; i += blockDim.x){
+        softmax_attn_score[score_offset + i] /= sum;
+    }
+    __syncthreads(); // ensure all threads have normalized softmax_attn_score before any further use
 
 }
 
 
-//  strategy: 
-//      each `block` handle one head
-//      in each `block`,there are "p + 1" threads, each threads handle one token's score which is: (1, 128) * (128, 1) -> 1
-//      for the 128-product above: q-head * k-head^T (should consider use which head in one group based on GQA)
-__global__ void attn_score_softmax(
-const float* q_rot,
-const float* k_cache,
-float* attn_score,
-GQAConfig gqa_config
-)
-    {
-    // the must local variable for each thread
-    int token_pos = threadIdx.x; 
-    int current_h = blockIdx.x;
-    int group_for_each_h = current_h / 6;
-    float product_sum = 0.0f;
-
-
-    // (1, 128) * (128, 1)
-    for (int i = 0; i < 128; ++i){
-        product_sum += q_rot[(current_h * gqa_config.stride_q_head) + i] * k_cache[(token_pos * gqa_config.stride_kv_token) + (group_for_each_h * gqa_config.stride_kv_group) + i];
-    }
-    attn_score[(current_h * gqa_config.stride_score_head) + token_pos] = product_sum;
-
-    }
 
 
 // weighted sum 
-// strategy same like attn_score_softmax
-__global__ void weighted_sum(float* attn_score, const float* value_cache, float* output, GQAConfig gqa_config){
-    // each block handles one head, each thread handles one of the 128 output dims
-    int dim_idx = threadIdx.x;
-    int current_h = blockIdx.x;
-    int group_for_each_h = current_h / 6;
-    float sum = 0.0f;
+// strategy: <<<heads number, head_dim(128)>>>
+// each block handles one head, each thread handles one output dim `d`
+// so a thread walks over all tokens: output[d] = sum_t softmax_attn_score[t] * v[t][d]
+__global__ void weighted_sum(float* softmax_attn_score, const float* value_cache, float* output, GQAConfig gqa_config){
 
-    if (dim_idx < 128){
-        // (1, seq_len) * (seq_len, 128) -> (1, 128)
-        for (int t = 0; t < gqa_config.seq_len; ++t){
-            sum += attn_score[(current_h * gqa_config.stride_score_head) + t] * value_cache[(t * gqa_config.stride_kv_token) + (group_for_each_h * gqa_config.stride_kv_group) + dim_idx];
-        }
-        output[(current_h * gqa_config.stride_q_head) + dim_idx] = sum;
+    int head_id = blockIdx.x;                 // 0~11
+    int d = threadIdx.x;                      // 0~127
+    int n_kv_heads = gqa_config.kv_head_dim / gqa_config.head_dim;
+    int group_id = head_id / (gqa_config.heads_num / n_kv_heads); // same GQA mapping as k
+
+    float accum_sum = 0.0f;
+    for (int token = 0; token < gqa_config.seq_len; ++token){
+        float score = softmax_attn_score[head_id * gqa_config.max_seq_len + token];
+        float value = value_cache[token * gqa_config.kv_head_dim + group_id * gqa_config.head_dim + d];
+        accum_sum += score * value;
     }
 
-
+    // [n_heads, head_dim] flattened -> [dim]
+    output[head_id * gqa_config.head_dim + d] = accum_sum;
 }
 
 
@@ -145,33 +344,42 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
     float* layer_keys = state->key_cache + layer_offset;
     float* current_key = layer_keys + position * (config->n_kv_heads * (config->dim / config->n_heads));
 
+
   // initialize GQA config
     GQAConfig gqa_k_config = {
         .seq_len = position + 1,
-        .stride_q_head = config->dim, // 128
-        .stride_kv_token = config->n_kv_heads * (config->dim / config->n_heads), // 256
-        .stride_kv_group = config->dim, // 128
-        .stride_score_head = state->max_seq_len,
+        .head_dim = config->dim / config->n_heads,
         .max_seq_len = state->max_seq_len,
-        .layer_kv = layer_keys
+        .layer_kv = layer_keys,
+        .heads_num = config->n_heads,
+        .kv_head_dim = config->dim /  config->n_heads * config->n_kv_heads
     };
 
     GQAConfig gqa_v_config = {
         .seq_len = position + 1,
-        .stride_q_head = config->dim,
-        .stride_kv_token = config->n_kv_heads * (config->dim / config->n_heads), // 256
-        .stride_kv_group = config->dim, // 128
-        .stride_score_head = state->max_seq_len,
+        .head_dim = config->dim / config->n_heads,
         .max_seq_len = state->max_seq_len,
-        .layer_kv = layer_values
+        .layer_kv = layer_values,
+        .heads_num = config->n_heads,
+        .kv_head_dim = config->dim /  config->n_heads * config->n_kv_heads
     };
 
 
+    cudaStream_t computation_stream , v_to_v_cache_stream;
+    cudaError_t err = cudaStreamCreate(&computation_stream);
+    if (err != cudaSuccess) {
+        fprintf(stderr, "create computation stream failed: %s\n", cudaGetErrorString(err));
+    }
+    err = cudaStreamCreate(&v_to_v_cache_stream); 
+    if (err != cudaSuccess) {
+        fprintf(stderr, "create v_to_v_cache stream failed: %s\n", cudaGetErrorString(err));
+    }
+
     // Q, K, V projection
-    proj_bias<<<dim3(6), dim3(256)>>>(layer->wq, layer->bq, state->before_attn_norm_x, state->q, config->dim);
-    proj_bias<<<dim3(6), dim3(256)>>>(layer->wk, layer->bk, state->before_attn_norm_x, state->k, config->dim);
-    proj_bias<<<dim3(6), dim3(256)>>>(layer->wv, layer->bv, state->before_attn_norm_x, state->v, config->dim);
-    cudaDeviceSynchronize();
+    proj_bias<<<dim3(6), dim3(256), 0, computation_stream>>>(layer->wq, layer->bq, state->before_attn_norm_x, state->q, config->dim);
+    proj_bias<<<dim3(6), dim3(256), 0, computation_stream>>>(layer->wk, layer->bk, state->before_attn_norm_x, state->k, config->dim);
+    proj_bias<<<dim3(6), dim3(256), 0, computation_stream>>>(layer->wv, layer->bv, state->before_attn_norm_x, state->v, config->dim);
+    cudaStreamSynchronize(computation_stream);
 
 
 
@@ -181,31 +389,25 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
 
 
     // rope for q, k 
-    rope<<<12, 64>>>(state->q, state->q_rot, position);
-    rope<<<12, 64>>>(state->k, state->k_rot, position);
-    cudaDeviceSynchronize();
+    rope<<<12, 64, 0, computation_stream>>>(state->q, state->q_rot, position);
+    rope<<<2, 64, 0, computation_stream>>>(state->k, state->k_rot, position);
+    cudaStreamSynchronize(computation_stream);
 
 
     /*
     rope之后的计算并行2条线。
-        computation：k_rot write into k_cache -> softmax(Q*KT) and get attn_score
+        computation：k_rot write into k_cache -> softmax(Q*KT) and get attn_score (raw) and softmax_attn_score
         v_to_v_cache：v write into v-cache
     synchronize streams before weighted sum
-        weighted_sum =  attn_score([12, p+1]) * v([p+1], 2, 128])
+        weighted_sum =  softmax_attn_score([12, p+1]) * v([p+1], 2, 128])
             for each head: [p+1, 1] * [1, 128] -> [p+1, 128]
             combine results from all heads to get [12, 128] -> [1536]
     */
 
-    cudaStream_t computation_stream , v_to_v_cache_stream;
-    cudaStreamCreate(&computation_stream);
-    cudaStreamCreate(&v_to_v_cache_stream); 
-
-
-
     /*
     1. current v to v cache stream
     */
-    cudaError_t err = cudaMemcpyAsync(current_value, state->v, (config->n_kv_heads) * (config->dim / config->n_heads) * sizeof(float), cudaMemcpyDeviceToDevice, v_to_v_cache_stream);
+    err = cudaMemcpyAsync(current_value, state->v, (config->n_kv_heads) * (config->dim / config->n_heads) * sizeof(float), cudaMemcpyDeviceToDevice, v_to_v_cache_stream);
     if (err != cudaSuccess) {
     fprintf(stderr, "copy v to v-cache failed: %s\n", cudaGetErrorString(err));
     }
@@ -222,11 +424,12 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
     }
 
 
-    // compute attn_score 
-    attn_score_softmax<<<dim3(config->n_heads), dim3(position + 1)>>>(
+    // compute attn_score and softmax_attn_score
+    attn_score_softmax<<<dim3(config->n_heads), dim3(256), 0, computation_stream>>>(
         state->q_rot,
         state->key_cache + layer_offset,
         state->attn_score,
+        state->softmax_attn_score,
         gqa_k_config
     );
 
@@ -236,9 +439,9 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
     */
     cudaStreamSynchronize(computation_stream);
     cudaStreamSynchronize(v_to_v_cache_stream);
-    
-    weighted_sum<<<dim3(config->n_heads), dim3(config->dim / config->n_heads)>>>(
-        state->attn_score,
+
+    weighted_sum<<<dim3(config->n_heads), dim3(config->dim / config->n_heads), 0, computation_stream>>>(
+        state->softmax_attn_score,
         state->value_cache + layer_offset,
         state->weighted_value,
         gqa_v_config
@@ -248,15 +451,17 @@ void attention(blocks* layer, RunState* state, int layer_index, Config* config, 
     /*
     4. projection 
     */
-    proj<<<dim3(6), dim3(256)>>>(
+    proj<<<dim3(6), dim3(256), 0, computation_stream>>>(
         layer->wo,
         state->weighted_value,
         state->attn_o,
         config->dim
     );
 
-
-
+    // later kernels run on the default stream, so wait before destroying
+    cudaStreamSynchronize(computation_stream);
+    cudaStreamDestroy(computation_stream);
+    cudaStreamDestroy(v_to_v_cache_stream);
 
 }
 

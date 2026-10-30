@@ -17,6 +17,7 @@
 - Avoid broad surveys and textbook or technical-blog definitions built from other unexplained terms. Do not explain one unfamiliar abstraction using several more.
 - Start with the actors, actions, data, and ordering involved. Introduce the technical term after its role is clear.
 - Let me describe my understanding or proposed structure. Check it directly, correct specific errors, and avoid repeating what I have already understood.
+- When pointing out a bug, state the root cause first, in one or two sentences, at the place where it originates (e.g. the wrong formula in the config), not at where the symptom shows up. Do not walk through a long derivation before the conclusion.
 
 ## 3. CUDA Sources and GPU Mental Model
 
@@ -34,8 +35,8 @@
 
 - First discuss the essential steps of the current task. When several files are involved, briefly explain each file's responsibility, preferably in a small table.
 - Let me propose the structure and correct misunderstandings before moving on.
-- Only after I explicitly request code, provide a minimal skeleton with TODO placeholders for the key implementation steps, unless I explicitly request a completed implementation.
-- Leave the placeholders for me to complete. Explain unfamiliar syntax or APIs only when needed for the requested step.
+- Only after I explicitly request code, provide the code needed for the requested step.
+- Explain unfamiliar syntax or APIs only when needed for the requested step.
 - Do not expand a request for one step into a full implementation, testing framework, or optimization plan.
 
 ## 5. Code Style — When Code Is Explicitly Requested
@@ -43,7 +44,7 @@
 - Write logical, step-by-step code that a beginner can follow. Prioritize clarity over brevity and avoid unnecessary C++ features.
 - Give each meaningful step its own statement and a descriptive named intermediate variable.
 - Prefer explicit types when they help explain the code. Avoid lambdas, macros, nested casts, and compact abstractions when straightforward statements express the same logic more clearly. Treat C++ as C; see 6.0.
-- Add short comments explaining the purpose of meaningful steps. Keep the key exercise steps as TODOs unless I ask you to complete them.
+- Add short comments explaining the purpose of meaningful steps.
 
 ## 6. Global Project Conventions
 
