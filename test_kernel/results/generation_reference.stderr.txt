@@ -1,0 +1,3 @@
+Loading weights:   0%|          | 0/338 [00:00<?, ?it/s]Loading weights:  37%|███▋      | 125/338 [00:00<00:00, 1221.44it/s]Loading weights:  80%|███████▉  | 269/338 [00:00<00:00, 1346.82it/s]Loading weights: 100%|██████████| 338/338 [00:00<00:00, 1380.24it/s]
+运行设备: cuda
+PREFILL 完成: 34 tokens

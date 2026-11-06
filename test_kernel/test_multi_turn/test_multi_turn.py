@@ -12,10 +12,11 @@ def main():
 
     from transformers import AutoTokenizer
 
+    # 使用原测试 README 描述的姓名/颜色记忆场景。
     prompts = [
-        "三上悠亚是谁？",
-        "相泽南是谁？",
-        "提供三上悠亚和相泽南的的合作的作品番号",
+        "我叫李三，我最喜欢的颜色是蓝色，请记住。",
+        "我们刚才聊到了什么？请简短回答。",
+        "我叫什么名字？我最喜欢什么颜色？",
     ]
     messages = []
     tokenizer = AutoTokenizer.from_pretrained(args.model_path, local_files_only=True)

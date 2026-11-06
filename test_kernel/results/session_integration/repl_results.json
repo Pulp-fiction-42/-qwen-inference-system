@@ -1,0 +1,30 @@
+{
+  "repl_multi_turn": {
+    "exit_code": 0,
+    "passed": true
+  },
+  "repl_length_eof": {
+    "exit_code": 0,
+    "passed": true
+  },
+  "repl_zero": {
+    "exit_code": 0,
+    "passed": true
+  },
+  "repl_context": {
+    "exit_code": 0,
+    "passed": true
+  },
+  "repl_invalid_args": {
+    "exit_code": 1,
+    "passed": true
+  },
+  "repl_missing_weights": {
+    "exit_code": 1,
+    "passed": true
+  },
+  "repl_truncated_weights": {
+    "exit_code": 1,
+    "passed": true
+  }
+}

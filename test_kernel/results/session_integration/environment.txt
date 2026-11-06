@@ -1,0 +1,5 @@
+torch 2.14.0+cu130
+transformers 5.16.1
+CUDA available True
+GPU NVIDIA GeForce RTX 5090 Laptop GPU
+matmul precision highest

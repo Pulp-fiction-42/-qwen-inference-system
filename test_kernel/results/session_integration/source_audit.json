@@ -1,0 +1,45 @@
+{
+  "weighted_sum.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "softmax.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "rope.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "rms_norm.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "linear.cu": {
+    "kernel_count": 4,
+    "bodies_unchanged": true
+  },
+  "embedding.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "elementwise.cu": {
+    "kernel_count": 4,
+    "bodies_unchanged": true
+  },
+  "copy.cu": {
+    "kernel_count": 0,
+    "bodies_unchanged": true
+  },
+  "attention_score.cu": {
+    "kernel_count": 1,
+    "bodies_unchanged": true
+  },
+  "argmax.cu": {
+    "kernel_count": 2,
+    "bodies_equal_legacy_sampler": true
+  },
+  "tokenizer": {
+    "encoding_decoding_unchanged": true
+  }
+}
