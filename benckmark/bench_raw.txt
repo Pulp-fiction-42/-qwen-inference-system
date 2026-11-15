@@ -1,0 +1,121 @@
+Session initialization time: 0.882011 s
+  Tokenizer Encode: 0.005105 s
+  Prefill tokens: 32
+  Runstate initialization: 0.000175 s
+    Prefill: 6.355429 s
+    Decode: 1.796362 s
+  Generate: 8.151852 s
+  Tokenizer Decode: 0.000036 s
+Turn: 8.157327 s
+  Stop reason: eos
+  Generated tokens: 9
+  Tokenizer Encode: 0.000525 s
+  Prefill tokens: 55
+  Runstate initialization: 0.000091 s
+    Prefill: 10.961384 s
+    Decode: 15.406992 s
+  Generate: 26.368444 s
+  Tokenizer Decode: 0.000043 s
+Turn: 26.369254 s
+  Stop reason: eos
+  Generated tokens: 76
+  Tokenizer Encode: 0.001851 s
+  Prefill tokens: 150
+  Runstate initialization: 0.000093 s
+    Prefill: 30.272743 s
+    Decode: 7.010181 s
+  Generate: 37.282996 s
+  Tokenizer Decode: 0.000022 s
+Turn: 37.285112 s
+  Stop reason: eos
+  Generated tokens: 34
+  Tokenizer Encode: 0.002379 s
+  Prefill tokens: 200
+  Runstate initialization: 0.000089 s
+    Prefill: 40.594492 s
+    Decode: 10.235573 s
+  Generate: 50.830132 s
+  Tokenizer Decode: 0.000027 s
+Turn: 50.832772 s
+  Stop reason: eos
+  Generated tokens: 49
+  Tokenizer Encode: 0.003216 s
+  Prefill tokens: 267
+  Runstate initialization: 0.000097 s
+    Prefill: 54.613760 s
+    Decode: 26.284411 s
+  Generate: 80.898245 s
+  Tokenizer Decode: 0.000048 s
+Turn: 80.901754 s
+  Stop reason: eos
+  Generated tokens: 123
+  Tokenizer Encode: 0.004411 s
+  Prefill tokens: 405
+  Runstate initialization: 0.000090 s
+    Prefill: 84.142747 s
+    Decode: 15.763585 s
+  Generate: 99.906415 s
+  Tokenizer Decode: 0.000039 s
+Turn: 99.911116 s
+  Stop reason: eos
+  Generated tokens: 72
+  Tokenizer Encode: 0.005521 s
+  Prefill tokens: 495
+  Runstate initialization: 0.000094 s
+    Prefill: 103.884234 s
+    Decode: 19.668997 s
+  Generate: 123.553304 s
+  Tokenizer Decode: 0.000047 s
+Turn: 123.559120 s
+  Stop reason: eos
+  Generated tokens: 88
+  Tokenizer Encode: 0.006785 s
+  Prefill tokens: 598
+  Runstate initialization: 0.000095 s
+    Prefill: 126.933739 s
+    Decode: 15.035211 s
+  Generate: 141.969025 s
+  Tokenizer Decode: 0.000030 s
+Turn: 141.976085 s
+  Stop reason: eos
+  Generated tokens: 66
+  Tokenizer Encode: 0.007453 s
+  Prefill tokens: 683
+  Runstate initialization: 0.000102 s
+    Prefill: 146.325627 s
+    Decode: 36.004325 s
+  Generate: 182.330024 s
+  Tokenizer Decode: 0.000061 s
+Turn: 182.337795 s
+  Stop reason: eos
+  Generated tokens: 154
+  Tokenizer Encode: 0.009519 s
+  Prefill tokens: 852
+  Runstate initialization: 0.000099 s
+    Prefill: 185.888617 s
+    Decode: 18.227674 s
+  Generate: 204.116365 s
+  Tokenizer Decode: 0.000035 s
+Turn: 204.126174 s
+  Stop reason: eos
+  Generated tokens: 76
+  Tokenizer Encode: 0.010409 s
+  Prefill tokens: 947
+  Runstate initialization: 0.000095 s
+    Prefill: 208.704192 s
+    Decode: 38.894637 s
+  Generate: 247.598900 s
+  Tokenizer Decode: 0.000068 s
+Turn: 247.609621 s
+  Stop reason: eos
+  Generated tokens: 158
+  Tokenizer Encode: 0.012772 s
+  Prefill tokens: 1123
+  Runstate initialization: 0.000098 s
+    Prefill: 252.097202 s
+    Decode: 28.625811 s
+  Generate: 280.723092 s
+  Tokenizer Decode: 0.000048 s
+Turn: 280.736159 s
+  Stop reason: eos
+  Generated tokens: 113

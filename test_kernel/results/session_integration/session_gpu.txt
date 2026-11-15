@@ -1,0 +1,4 @@
+Session single turn: 63 token IDs match reference
+Session clear + retry: identical tokens; no per-turn GPU memory growth
+Session destruction: GPU free bytes increased by 6176112640
+GPU length checks passed: max-new 0/1, context full/one free slot

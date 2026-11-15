@@ -1,0 +1,182 @@
+Session initialization: 0.882011 s
+--- Turn 1 ---
+Turn: 8.157327 s
+  Tokenizer Encode: 0.005105 s
+  Runstate initialization: 0.000175 s
+  Generate: 8.151852 s
+    Prefill: 198.607 ms/token
+    Decode: 199.596 ms/token
+  Tokenizer Decode: 0.000036 s
+--- Turn 2 ---
+Turn: 26.369254 s
+  Tokenizer Encode: 0.000525 s
+  Runstate initialization: 0.000091 s
+  Generate: 26.368444 s
+    Prefill: 199.298 ms/token
+    Decode: 202.724 ms/token
+  Tokenizer Decode: 0.000043 s
+--- Turn 3 ---
+Turn: 37.285112 s
+  Tokenizer Encode: 0.001851 s
+  Runstate initialization: 0.000093 s
+  Generate: 37.282996 s
+    Prefill: 201.818 ms/token
+    Decode: 206.182 ms/token
+  Tokenizer Decode: 0.000022 s
+--- Turn 4 ---
+Turn: 50.832772 s
+  Tokenizer Encode: 0.002379 s
+  Runstate initialization: 0.000089 s
+  Generate: 50.830132 s
+    Prefill: 202.972 ms/token
+    Decode: 208.889 ms/token
+  Tokenizer Decode: 0.000027 s
+--- Turn 5 ---
+Turn: 80.901754 s
+  Tokenizer Encode: 0.003216 s
+  Runstate initialization: 0.000097 s
+  Generate: 80.898245 s
+    Prefill: 204.546 ms/token
+    Decode: 213.694 ms/token
+  Tokenizer Decode: 0.000048 s
+--- Turn 6 ---
+Turn: 99.911116 s
+  Tokenizer Encode: 0.004411 s
+  Runstate initialization: 0.000090 s
+  Generate: 99.906415 s
+    Prefill: 207.760 ms/token
+    Decode: 218.939 ms/token
+  Tokenizer Decode: 0.000039 s
+--- Turn 7 ---
+Turn: 123.559120 s
+  Tokenizer Encode: 0.005521 s
+  Runstate initialization: 0.000094 s
+  Generate: 123.553304 s
+    Prefill: 209.867 ms/token
+    Decode: 223.511 ms/token
+  Tokenizer Decode: 0.000047 s
+--- Turn 8 ---
+Turn: 141.976085 s
+  Tokenizer Encode: 0.006785 s
+  Runstate initialization: 0.000095 s
+  Generate: 141.969025 s
+    Prefill: 212.264 ms/token
+    Decode: 227.806 ms/token
+  Tokenizer Decode: 0.000030 s
+--- Turn 9 ---
+Turn: 182.337795 s
+  Tokenizer Encode: 0.007453 s
+  Runstate initialization: 0.000102 s
+  Generate: 182.330024 s
+    Prefill: 214.240 ms/token
+    Decode: 233.794 ms/token
+  Tokenizer Decode: 0.000061 s
+--- Turn 10 ---
+Turn: 204.126174 s
+  Tokenizer Encode: 0.009519 s
+  Runstate initialization: 0.000099 s
+  Generate: 204.116365 s
+    Prefill: 218.179 ms/token
+    Decode: 239.838 ms/token
+  Tokenizer Decode: 0.000035 s
+--- Turn 11 ---
+Turn: 247.609621 s
+  Tokenizer Encode: 0.010409 s
+  Runstate initialization: 0.000095 s
+  Generate: 247.598900 s
+    Prefill: 220.385 ms/token
+    Decode: 246.169 ms/token
+  Tokenizer Decode: 0.000068 s
+--- Turn 12 ---
+Turn: 280.736159 s
+  Tokenizer Encode: 0.012772 s
+  Runstate initialization: 0.000098 s
+  Generate: 280.723092 s
+    Prefill: 224.485 ms/token
+    Decode: 253.326 ms/token
+  Tokenizer Decode: 0.000048 s
+
+--- Turn 1 ---
+Prompt Processing:
+  TTFT: 6360.71 ms
+  Throughput: 5.04 tokens/s (32 tokens)
+Token Generation:
+  Average ITL: 199.60 ms/token
+  Throughput: 5.01 tokens/s (9 tokens)
+--- Turn 2 ---
+Prompt Processing:
+  TTFT: 10962.00 ms
+  Throughput: 5.02 tokens/s (55 tokens)
+Token Generation:
+  Average ITL: 202.72 ms/token
+  Throughput: 4.93 tokens/s (76 tokens)
+--- Turn 3 ---
+Prompt Processing:
+  TTFT: 30274.69 ms
+  Throughput: 4.95 tokens/s (150 tokens)
+Token Generation:
+  Average ITL: 206.18 ms/token
+  Throughput: 4.85 tokens/s (34 tokens)
+--- Turn 4 ---
+Prompt Processing:
+  TTFT: 40596.96 ms
+  Throughput: 4.93 tokens/s (200 tokens)
+Token Generation:
+  Average ITL: 208.89 ms/token
+  Throughput: 4.79 tokens/s (49 tokens)
+--- Turn 5 ---
+Prompt Processing:
+  TTFT: 54617.07 ms
+  Throughput: 4.89 tokens/s (267 tokens)
+Token Generation:
+  Average ITL: 213.69 ms/token
+  Throughput: 4.68 tokens/s (123 tokens)
+--- Turn 6 ---
+Prompt Processing:
+  TTFT: 84147.25 ms
+  Throughput: 4.81 tokens/s (405 tokens)
+Token Generation:
+  Average ITL: 218.94 ms/token
+  Throughput: 4.57 tokens/s (72 tokens)
+--- Turn 7 ---
+Prompt Processing:
+  TTFT: 103889.85 ms
+  Throughput: 4.76 tokens/s (495 tokens)
+Token Generation:
+  Average ITL: 223.51 ms/token
+  Throughput: 4.47 tokens/s (88 tokens)
+--- Turn 8 ---
+Prompt Processing:
+  TTFT: 126940.62 ms
+  Throughput: 4.71 tokens/s (598 tokens)
+Token Generation:
+  Average ITL: 227.81 ms/token
+  Throughput: 4.39 tokens/s (66 tokens)
+--- Turn 9 ---
+Prompt Processing:
+  TTFT: 146333.18 ms
+  Throughput: 4.67 tokens/s (683 tokens)
+Token Generation:
+  Average ITL: 233.79 ms/token
+  Throughput: 4.28 tokens/s (154 tokens)
+--- Turn 10 ---
+Prompt Processing:
+  TTFT: 185898.23 ms
+  Throughput: 4.58 tokens/s (852 tokens)
+Token Generation:
+  Average ITL: 239.84 ms/token
+  Throughput: 4.17 tokens/s (76 tokens)
+--- Turn 11 ---
+Prompt Processing:
+  TTFT: 208714.70 ms
+  Throughput: 4.54 tokens/s (947 tokens)
+Token Generation:
+  Average ITL: 246.17 ms/token
+  Throughput: 4.06 tokens/s (158 tokens)
+--- Turn 12 ---
+Prompt Processing:
+  TTFT: 252110.07 ms
+  Throughput: 4.45 tokens/s (1123 tokens)
+Token Generation:
+  Average ITL: 253.33 ms/token
+  Throughput: 3.95 tokens/s (113 tokens)

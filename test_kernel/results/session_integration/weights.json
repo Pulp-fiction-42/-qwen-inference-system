@@ -1,0 +1,14 @@
+{
+  "header": [
+    1536,
+    8960,
+    28,
+    12,
+    2,
+    151936
+  ],
+  "tensors": 338,
+  "float32_elements": 1543714304,
+  "exact_match": true,
+  "lm_head_tied_to_embedding": true
+}

@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prefill / Decode latency</title>
+<style>
+  :root { color-scheme: light dark; --bg: #fff; --fg: #202124; --muted: #686b70;
+    --grid: #eeeeef; --tip: #f5f5f6; --border: #d9dce0; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #181a1e; --fg: #eceef2; --muted: #b2b6be; --grid: #33363c;
+      --tip: #26292f; --border: #545861; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--fg);
+    font: 15px/1.5 system-ui, sans-serif; }
+  main { max-width: 1500px; margin: auto; padding: 28px 30px; }
+  h1 { font-size: 25px; font-weight: 600; margin: 0 0 8px; }
+  p { margin: 8px 0; }
+  .muted { color: var(--muted); font-size: 13px; }
+  .table-scroll { overflow-x: auto; margin: 24px 0; }
+  table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+  caption { text-align: left; color: var(--muted); font-size: 13px; margin-bottom: 8px; }
+  th, td { text-align: right; padding: 13px 18px; white-space: nowrap;
+    border-bottom: 1px solid var(--grid); }
+  th:first-child { position: sticky; left: 0; background: var(--bg); text-align: left; }
+  th { font-weight: 600; }
+  tr.selected td, tr.selected th { background: var(--tip); }
+  .controls, #legend { display: flex; gap: 14px 24px; align-items: center; flex-wrap: wrap; }
+  select { font: inherit; color: var(--fg); background: var(--bg);
+    border: 1px solid var(--border); border-radius: 5px; padding: 5px 8px; }
+  input { accent-color: #5096f5; }
+  #legend { justify-content: center; margin: 16px 0; }
+  #legend label { display: inline-flex; gap: 8px; align-items: center; }
+  .swatch { width: 24px; height: 0; border-top: 3px solid; display: inline-block; }
+  .axis-labels { display: flex; justify-content: space-between; gap: 20px;
+    color: var(--muted); font-size: 13px; margin-top: 22px; }
+  #plot { position: relative; }
+  svg { display: block; width: 100%; overflow: visible; touch-action: pan-y; }
+  svg text { fill: var(--muted); font-size: 13px; font-family: inherit; }
+  .grid { stroke: var(--grid); stroke-dasharray: 5 5; }
+  #tooltip { position: absolute; pointer-events: none; background: var(--tip);
+    border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px;
+    box-shadow: 0 3px 12px #0001; max-width: calc(100% - 16px); font-size: 14px; }
+  .tip-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 5px; }
+  .tip-value { margin-left: auto; font-variant-numeric: tabular-nums; }
+  #details { min-height: 28px; text-align: center; font-variant-numeric: tabular-nums; }
+  @media (max-width: 600px) {
+    main { padding: 18px 12px; } h1 { font-size: 21px; }
+    th, td { padding: 10px 12px; } svg text { font-size: 12px; }
+    th:first-child { min-width: 130px; max-width: 160px; white-space: normal; }
+    #tooltip { font-size: 12px; padding: 8px; }
+    .controls, #legend { gap: 10px 14px; } #legend { justify-content: flex-start; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title"></h1>
+  <p class="muted" id="source"></p>
+  <div class="table-scroll"><table id="values"><caption>Values by turn</caption></table></div>
+  <div class="controls">
+    <label>Inspect <select id="turn" aria-label="Inspect turn"></select></label>
+    <label id="scale-control">Latency scale
+      <select id="scale"><option value="log">Logarithmic</option><option value="linear">Linear</option></select>
+    </label>
+  </div>
+  <div class="axis-labels"><span id="left-label"></span><span id="right-label"></span></div>
+  <div id="plot">
+    <svg id="chart" role="img" aria-labelledby="svg-title svg-description"></svg>
+    <div id="tooltip" hidden></div>
+  </div>
+  <div id="legend" role="group" aria-label="Visible series"></div>
+  <p id="details" aria-live="polite"></p>
+  <p class="muted" id="note"></p>
+</main>
+<script id="chart-data" type="application/json">{"kind": "latency", "title": "Prefill / Decode latency", "sources": ["benckmark/v1.txt"], "turns": [{"turn": 1, "prefill": 198.607, "decode": 199.596, "ttft": 6360.71, "prompt_throughput_tokens": 32, "prompt_throughput": 5.04, "itl": 199.6, "generation_throughput_tokens": 9, "generation_throughput": 5.01}, {"turn": 2, "prefill": 199.298, "decode": 202.724, "ttft": 10962.0, "prompt_throughput_tokens": 55, "prompt_throughput": 5.02, "itl": 202.72, "generation_throughput_tokens": 76, "generation_throughput": 4.93}, {"turn": 3, "prefill": 201.818, "decode": 206.182, "ttft": 30274.69, "prompt_throughput_tokens": 150, "prompt_throughput": 4.95, "itl": 206.18, "generation_throughput_tokens": 34, "generation_throughput": 4.85}, {"turn": 4, "prefill": 202.972, "decode": 208.889, "ttft": 40596.96, "prompt_throughput_tokens": 200, "prompt_throughput": 4.93, "itl": 208.89, "generation_throughput_tokens": 49, "generation_throughput": 4.79}, {"turn": 5, "prefill": 204.546, "decode": 213.694, "ttft": 54617.07, "prompt_throughput_tokens": 267, "prompt_throughput": 4.89, "itl": 213.69, "generation_throughput_tokens": 123, "generation_throughput": 4.68}, {"turn": 6, "prefill": 207.76, "decode": 218.939, "ttft": 84147.25, "prompt_throughput_tokens": 405, "prompt_throughput": 4.81, "itl": 218.94, "generation_throughput_tokens": 72, "generation_throughput": 4.57}, {"turn": 7, "prefill": 209.867, "decode": 223.511, "ttft": 103889.85, "prompt_throughput_tokens": 495, "prompt_throughput": 4.76, "itl": 223.51, "generation_throughput_tokens": 88, "generation_throughput": 4.47}, {"turn": 8, "prefill": 212.264, "decode": 227.806, "ttft": 126940.62, "prompt_throughput_tokens": 598, "prompt_throughput": 4.71, "itl": 227.81, "generation_throughput_tokens": 66, "generation_throughput": 4.39}, {"turn": 9, "prefill": 214.24, "decode": 233.794, "ttft": 146333.18, "prompt_throughput_tokens": 683, "prompt_throughput": 4.67, "itl": 233.79, "generation_throughput_tokens": 154, "generation_throughput": 4.28}, {"turn": 10, "prefill": 218.179, "decode": 239.838, "ttft": 185898.23, "prompt_throughput_tokens": 852, "prompt_throughput": 4.58, "itl": 239.84, "generation_throughput_tokens": 76, "generation_throughput": 4.17}, {"turn": 11, "prefill": 220.385, "decode": 246.169, "ttft": 208714.7, "prompt_throughput_tokens": 947, "prompt_throughput": 4.54, "itl": 246.17, "generation_throughput_tokens": 158, "generation_throughput": 4.06}, {"turn": 12, "prefill": 224.485, "decode": 253.326, "ttft": 252110.07, "prompt_throughput_tokens": 1123, "prompt_throughput": 4.45, "itl": 253.33, "generation_throughput_tokens": 113, "generation_throughput": 3.95}], "series": [{"label": "Prefill", "unit": "ms/token", "color": "#5096f5", "key": "prefill"}, {"label": "Decode", "unit": "ms/token", "color": "#61bd7c", "key": "decode"}]}</script>
+<script>
+"use strict";
+const data = JSON.parse(document.getElementById("chart-data").textContent);
+const svg = document.getElementById("chart");
+const plot = document.getElementById("plot");
+const tooltip = document.getElementById("tooltip");
+const turnSelect = document.getElementById("turn");
+const scaleSelect = document.getElementById("scale");
+const visible = new Set(data.series.map(series => series.key));
+let selected = 0;
+let geometry;
+let pinned = false;
+const NS = "http://www.w3.org/2000/svg";
+
+function node(tag, attributes = {}, text = null) {
+  const element = document.createElementNS(NS, tag);
+  for (const [key, value] of Object.entries(attributes)) element.setAttribute(key, value);
+  if (text !== null) element.textContent = text;
+  return element;
+}
+function format(value) {
+  return value === null ? "N/A" : value.toLocaleString("en-US", {maximumFractionDigits: 3});
+}
+function tickLabel(value) {
+  return value.toLocaleString("en-US", {maximumFractionDigits: 2});
+}
+function addCell(row, tag, text) {
+  const cell = document.createElement(tag);
+  cell.textContent = text;
+  row.append(cell);
+  return cell;
+}
+function buildTable() {
+  const table = document.getElementById("values");
+  const head = table.createTHead().insertRow();
+  addCell(head, "th", "Metric").scope = "col";
+  for (const turn of data.turns) addCell(head, "th", `Turn ${turn.turn}`).scope = "col";
+  const body = table.createTBody();
+  for (const series of data.series) {
+    const row = body.insertRow();
+    addCell(row, "th", `${series.label} (${series.unit})`).scope = "row";
+    for (const turn of data.turns) addCell(row, "td", format(turn[series.key]));
+  }
+}
+
+// Each axis uses its own units. Missing samples break paths rather than becoming zero.
+function makeAxis(series, logarithmic) {
+  const values = [];
+  for (const item of series) {
+    for (const turn of data.turns) {
+      const value = turn[item.key];
+      if (value !== null && (!logarithmic || value > 0)) values.push(value);
+    }
+  }
+  let maximum = values.length ? Math.max(...values) : 1;
+  if (logarithmic) {
+    const minimum = values.length ? Math.min(...values) : 1;
+    const low = Math.floor(Math.log10(minimum));
+    const high = Math.max(low + 1, Math.ceil(Math.log10(maximum)));
+    const ticks = [];
+    for (let power = low; power <= high; power++) ticks.push(10 ** power);
+    return {ticks, fraction: value => (Math.log10(value) - low) / (high - low)};
+  }
+  if (maximum === 0) maximum = 1;
+  const rawStep = maximum / 5;
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const step = [1, 2, 2.5, 5, 10].find(size => size * magnitude >= rawStep) * magnitude;
+  maximum = Math.ceil(maximum / step) * step;
+  const ticks = [];
+  for (let index = 0; index <= Math.round(maximum / step); index++) ticks.push(index * step);
+  return {ticks, fraction: value => value / maximum};
+}
+
+function draw() {
+  const width = plot.clientWidth;
+  const height = width < 600 ? 360 : 470;
+  const dual = data.kind === "metrics";
+  const logarithmic = dual && scaleSelect.value === "log";
+  const left = width < 600 ? 64 : 85;
+  const right = dual ? (width < 600 ? 44 : 65) : 20;
+  const top = 24, bottom = height - 44;
+  const end = width - right;
+  const active = data.series.filter(series => visible.has(series.key));
+  const axes = {
+    left: makeAxis(active.filter(series => !series.axis), logarithmic),
+    right: makeAxis(active.filter(series => series.axis === "right"), false),
+  };
+  const x = index => data.turns.length === 1 ? (left + end) / 2 :
+    left + (data.turns[index].turn - data.turns[0].turn) /
+    (data.turns.at(-1).turn - data.turns[0].turn) * (end - left);
+  const y = (series, value) => bottom - axes[series.axis || "left"].fraction(value) * (bottom - top);
+  geometry = {width, height, left, end, top, bottom, x, y};
+  svg.replaceChildren();
+  svg.setAttribute("height", height);
+  svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
+  svg.append(node("title", {id: "svg-title"}, data.title));
+  svg.append(node("desc", {id: "svg-description"},
+    `${data.turns.length} turns. Exact values are in the table. Use Inspect to select a turn, ` +
+    `or hover the plot. ${dual ? "Latency uses the left axis; throughput uses the right axis." : "Latency in ms/token."}`));
+  for (const value of axes.left.ticks) {
+    const yy = bottom - axes.left.fraction(value) * (bottom - top);
+    svg.append(node("line", {x1: left, x2: end, y1: yy, y2: yy, class: "grid"}));
+    svg.append(node("text", {x: left - 10, y: yy + 4, "text-anchor": "end"}, tickLabel(value)));
+  }
+  if (dual) {
+    for (const value of axes.right.ticks) {
+      const yy = bottom - axes.right.fraction(value) * (bottom - top);
+      svg.append(node("text", {x: end + 10, y: yy + 4}, tickLabel(value)));
+    }
+  }
+  const tickStep = Math.max(1, Math.ceil(data.turns.length / Math.max(2, Math.floor((end - left) / 78))));
+  data.turns.forEach((turn, index) => {
+    if (index % tickStep === 0 || index === data.turns.length - 1) {
+      // Reserve the last tick's space when turns are densely packed.
+      if (index !== data.turns.length - 1 && x(data.turns.length - 1) - x(index) < 62) return;
+      svg.append(node("text", {x: x(index), y: bottom + 28, "text-anchor": "middle"}, `Turn ${turn.turn}`));
+    }
+  });
+  for (const series of active) {
+    let path = "";
+    let connected = false;
+    data.turns.forEach((turn, index) => {
+      const value = turn[series.key];
+      if (value === null || (!series.axis && logarithmic && value <= 0)) { connected = false; return; }
+      path += `${connected ? "L" : "M"}${x(index)},${y(series, value)} `;
+      connected = true;
+    });
+    svg.append(node("path", {d: path, fill: "none", stroke: series.color,
+      "stroke-width": 3, "stroke-dasharray": series.dash ? "8 5" : "none"}));
+    data.turns.forEach((turn, index) => {
+      const value = turn[series.key];
+      if (value === null || (!series.axis && logarithmic && value <= 0)) return;
+      const attributes = {fill: series.color, stroke: "var(--bg)", "stroke-width": 2};
+      if (series.dash) {
+        svg.append(node("rect", {...attributes, x: x(index) - 4.5, y: y(series, value) - 4.5, width: 9, height: 9}));
+      } else {
+        svg.append(node("circle", {...attributes, cx: x(index), cy: y(series, value), r: 5.5}));
+      }
+    });
+  }
+  svg.append(node("line", {id: "crosshair", x1: x(selected), x2: x(selected), y1: top,
+    y2: bottom, stroke: "var(--border)", "pointer-events": "none", visibility: "hidden"}));
+  document.getElementById("left-label").textContent = dual ?
+    `Latency: TTFT (ms), ITL (ms/token) · ${logarithmic ? "logarithmic" : "linear"}` : "Latency (ms/token)";
+  document.getElementById("right-label").textContent = dual ? "Throughput (tokens/s)" : "";
+  if (pinned) inspect(selected, true);
+  else tooltip.hidden = true;
+}
+
+function inspect(index, showTooltip) {
+  selected = index;
+  turnSelect.value = String(index);
+  const turn = data.turns[index];
+  const active = data.series.filter(series => visible.has(series.key));
+  document.getElementById("details").textContent = `Turn ${turn.turn} · ` + active.map(series =>
+    `${series.label}: ${format(turn[series.key])} ${series.unit}`).join(" · ");
+  tooltip.replaceChildren();
+  const heading = document.createElement("strong");
+  heading.textContent = `Turn ${turn.turn}`;
+  tooltip.append(heading);
+  for (const series of active) {
+    const row = document.createElement("div"); row.className = "tip-row";
+    const swatch = document.createElement("span"); swatch.className = "swatch";
+    swatch.style.borderColor = series.color;
+    if (series.dash) swatch.style.borderTopStyle = "dashed";
+    const label = document.createElement("span"); label.textContent = series.label;
+    const value = document.createElement("span"); value.className = "tip-value";
+    const count = turn[series.key + "_tokens"];
+    value.textContent = `${format(turn[series.key])} ${series.unit}` +
+      (count === undefined ? "" : ` (${count} tokens)`);
+    row.append(swatch, label, value); tooltip.append(row);
+  }
+  tooltip.hidden = !showTooltip;
+  const crosshair = document.getElementById("crosshair");
+  crosshair.setAttribute("x1", geometry.x(index)); crosshair.setAttribute("x2", geometry.x(index));
+  crosshair.setAttribute("visibility", showTooltip ? "visible" : "hidden");
+  if (showTooltip) {
+    const desired = geometry.x(index) + 15;
+    tooltip.style.left = Math.max(8, Math.min(desired, geometry.width - tooltip.offsetWidth - 8)) + "px";
+    tooltip.style.top = Math.max(8, (geometry.height - tooltip.offsetHeight) / 2) + "px";
+  }
+}
+
+document.getElementById("title").textContent = data.title;
+document.getElementById("source").textContent = `${data.turns.length} turns · ${data.sources.join(" + ")}`;
+document.getElementById("scale-control").hidden = data.kind !== "metrics";
+document.getElementById("note").textContent = data.kind === "latency" ?
+  "Per-token phase latencies as reported in the log. N/A values appear as gaps." :
+  "Latency: left axis; throughput: right axis. Logarithmic latency keeps TTFT and ITL visible; zero latency is visible only on the linear scale. TTFT follows bench.sh's approximation (first-token sampling excluded). N/A values appear as gaps.";
+buildTable();
+data.turns.forEach((turn, index) => {
+  const option = document.createElement("option"); option.value = index;
+  option.textContent = `Turn ${turn.turn}`; turnSelect.append(option);
+});
+for (const series of data.series) {
+  const label = document.createElement("label");
+  const input = document.createElement("input"); input.type = "checkbox"; input.checked = true;
+  input.setAttribute("aria-label", `Show ${series.label}`);
+  const swatch = document.createElement("span"); swatch.className = "swatch";
+  swatch.style.borderColor = series.color;
+  if (series.dash) swatch.style.borderTopStyle = "dashed";
+  label.append(input, swatch, document.createTextNode(series.label));
+  document.getElementById("legend").append(label);
+  input.addEventListener("change", () => {
+    if (input.checked) visible.add(series.key); else visible.delete(series.key);
+    draw(); inspect(selected, pinned);
+  });
+}
+turnSelect.addEventListener("change", () => { pinned = true; inspect(Number(turnSelect.value), true); });
+scaleSelect.addEventListener("change", draw);
+svg.addEventListener("pointermove", event => {
+  const position = event.clientX - svg.getBoundingClientRect().left;
+  let nearest = 0;
+  for (let index = 1; index < data.turns.length; index++) {
+    if (Math.abs(geometry.x(index) - position) < Math.abs(geometry.x(nearest) - position)) nearest = index;
+  }
+  inspect(nearest, true);
+});
+svg.addEventListener("pointerleave", () => { if (!pinned) inspect(selected, false); });
+draw(); inspect(0, false);
+new ResizeObserver(draw).observe(plot);
+</script>
+</body>
+</html>

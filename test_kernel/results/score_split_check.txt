@@ -1,0 +1,8 @@
+position=0 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=1 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=2 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=3 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=4 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=5 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=6 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
+position=7 score_bit_mismatches=0 probability_bit_mismatches=0 max_score_error=0 max_probability_error=0
